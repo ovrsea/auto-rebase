@@ -1,0 +1,13 @@
+name: Auto Rebase
+author: Paul Wortham <paul@ovrsea.com>
+description: Automatically rebase and merge PRs that meet requirements.
+inputs:
+  github_token:
+    description: Token for the GitHub API.
+    required: true
+runs:
+  using: node18
+  main: dist/index.js
+branding:
+  icon: check-circle
+  color: green
