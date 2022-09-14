@@ -10,9 +10,9 @@
   "scripts": {
     "build": "ncc build src/index.ts --minify --v8-cache",
     "check-prettier": "npm run prettier --check",
-    "eslint": "eslint --ignore-path .gitignore --max-warnings 0 \"./**/*.{js,ts}\"",
+    "eslint": "eslint --ignore-path .eslintignore --max-warnings 0 \"./**/*.{js,ts}\"",
     "format-prettier": "npm run prettier --write",
-    "prettier": "prettier --ignore-path .gitignore \"./**/*.{js,json,md,ts,yml}\"",
+    "prettier": "prettier --ignore-path .eslintignore \"./**/*.{js,json,md,ts,yml}\"",
     "test": "jest"
   },
   "devDependencies": {
