@@ -1,4 +1,4 @@
-name: Auto Rebase
+name: Auto Rebase & Merge
 author: Paul Wortham <paul@ovrsea.com>
 description: Automatically rebase and merge PRs that meet requirements.
 inputs:
