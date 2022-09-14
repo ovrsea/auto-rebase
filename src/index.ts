@@ -8,6 +8,7 @@ const run = async () => {
     const token = getInput("github_token", { required: true });
     debug(JSON.stringify(context, undefined, 2));
     
+    //
     const github = getOctokit(token);
     debug(JSON.stringify(github));
   } catch (error: unknown) {
