@@ -6,9 +6,8 @@ import { handleError } from "./handle-error";
 const run = async () => {
   try {
     const token = getInput("github_token", { required: true });
-    debug(JSON.stringify(context, undefined, 2));
+    debug(JSON.stringify(context));
     
-    //
     const github = getOctokit(token);
     debug(JSON.stringify(github));
   } catch (error: unknown) {
