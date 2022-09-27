@@ -17,6 +17,7 @@ const run = async () => {
 
   try {
     const pullRequests = await github.rest.pulls.list({
+      base: "prod",
       direction: "desc",
       owner,
       repo,
@@ -48,6 +49,7 @@ const run = async () => {
 
     if (oldestMergeablePullRequest) {
       await github.rest.pulls.merge({
+        merge_method: "squash",
         owner,
         pull_number: oldestMergeablePullRequest.number,
         repo,
