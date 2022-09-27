@@ -6,7 +6,7 @@ const isInMergeableState = ({ mergeable_state }: { mergeable_state: string }) =>
   mergeable_state === "clean";
 
 const isRebasable = ({ mergeable_state }: { mergeable_state: string }) =>
-  mergeable_state === "behind"
+  mergeable_state === "behind";
 
 const run = async () => {
   const token = getInput("github_token", { required: true });
@@ -17,7 +17,7 @@ const run = async () => {
 
   try {
     const pullRequests = await github.rest.pulls.list({
-      direction: "asc",
+      direction: "desc",
       owner,
       repo,
       sort: "created",
@@ -25,36 +25,41 @@ const run = async () => {
     });
 
     const detailedPullRequestsResponse = await Promise.all(
-      pullRequests.data.map(async (pr) => github.rest.pulls.get({
-        owner,
-        pull_number: pr.number,
-        repo,
-      }))
-    )
+      pullRequests.data.map(async (pr) =>
+        github.rest.pulls.get({
+          owner,
+          pull_number: pr.number,
+          repo,
+        })
+      )
+    );
 
-    const detailedPullRequests = detailedPullRequestsResponse.map(({ data }) => data);
+    const detailedPullRequests = detailedPullRequestsResponse.map(
+      ({ data }) => data
+    );
 
-    const firstMergeablePullRequest = detailedPullRequests.find(isInMergeableState);
-    const firstRebasablePullRequest = detailedPullRequests.find(isRebasable);
+    const oldestMergeablePullRequest =
+      detailedPullRequests.find(isInMergeableState);
+    const oldestRebasablePullRequest = detailedPullRequests.find(isRebasable);
 
-    debug(JSON.stringify({ detailedPullRequests }, null, 2));
-    debug(JSON.stringify({ firstMergeablePullRequest }, null, 2));
-    debug(JSON.stringify({ firstRebasablePullRequest }, null, 2));
+    debug(`Number of opened PRs: ${detailedPullRequests.length}`);
+    debug(JSON.stringify({ oldestMergeablePullRequest }, null, 2));
+    debug(JSON.stringify({ oldestRebasablePullRequest }, null, 2));
 
-    if (firstMergeablePullRequest) {
+    if (oldestMergeablePullRequest) {
       await github.rest.pulls.merge({
         owner,
-        pull_number: firstMergeablePullRequest.number,
+        pull_number: oldestMergeablePullRequest.number,
         repo,
-      })
+      });
     }
 
-    if (firstRebasablePullRequest) {
+    if (oldestRebasablePullRequest) {
       await github.rest.pulls.updateBranch({
         owner,
-        pull_number: firstRebasablePullRequest.number,
+        pull_number: oldestRebasablePullRequest.number,
         repo,
-      })
+      });
     }
   } catch (error: unknown) {
     handleError(error, setFailed);
