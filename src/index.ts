@@ -2,11 +2,21 @@ import { debug, getInput, setFailed } from "@actions/core";
 import { getOctokit } from "@actions/github";
 import { handleError } from "./handle-error";
 
-const isInMergeableState = ({ mergeable_state }: { mergeable_state: string }) =>
-  mergeable_state === "clean";
+const isInMergeableState = ({
+  draft,
+  mergeable_state,
+}: {
+  draft?: boolean;
+  mergeable_state: string;
+}) => !draft && mergeable_state === "clean";
 
-const isRebasable = ({ mergeable_state }: { mergeable_state: string }) =>
-  mergeable_state === "behind";
+const isRebasable = ({
+  draft,
+  mergeable_state,
+}: {
+  draft?: boolean;
+  mergeable_state: string;
+}) => !draft && mergeable_state === "behind";
 
 const run = async () => {
   const token = getInput("github_token", { required: true });
