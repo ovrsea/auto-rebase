@@ -5,19 +5,23 @@ import { handleError } from "./handle-error";
 
 const isInMergeableState = ({
   draft,
+  lastStatus,
   mergeable_state,
 }: {
   draft?: boolean;
+  lastStatus: "success" | "failure";
   mergeable_state: string;
-}) => !draft && mergeable_state === "clean";
+}) => !draft && mergeable_state === "clean" && lastStatus === "success";
 
 const isRebasable = ({
   draft,
+  lastStatus,
   mergeable_state,
 }: {
   draft?: boolean;
+  lastStatus: "success" | "failure";
   mergeable_state: string;
-}) => !draft && mergeable_state === "behind";
+}) => !draft && mergeable_state === "behind" && lastStatus === "success";
 
 const extractLastCommitStatusFromPR =
   ({
@@ -29,7 +33,7 @@ const extractLastCommitStatusFromPR =
     owner: string;
     repo: string;
   }) =>
-  async ({ number }: { number: number }) => {
+  async ({ number }: { number: number }): Promise<"success" | "failure"> => {
     const pullRequestCommits = await github.rest.pulls.listCommits({
       owner,
       pull_number: number,
@@ -39,7 +43,7 @@ const extractLastCommitStatusFromPR =
     const lastCommit = pullRequestCommits.data.at(-1);
 
     if (!lastCommit) {
-      return;
+      return "failure";
     }
 
     const lastCommitChecks = await github.rest.checks.listForRef({
@@ -48,9 +52,11 @@ const extractLastCommitStatusFromPR =
       repo,
     });
 
-    return lastCommitChecks.data.check_runs.every(
+    const successStatus = lastCommitChecks.data.check_runs.every(
       (check) => check.conclusion === "success"
     );
+
+    return successStatus ? "success" : "failure";
   };
 
 const run = async () => {
