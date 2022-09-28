@@ -26,17 +26,14 @@ const run = async () => {
   const github = getOctokit(token);
 
   try {
-    const pullRequests = await github.rest.pulls.list({
-      base: "prod",
-      direction: "desc",
-      owner,
-      repo,
+    const pullRequests = await github.rest.search.issuesAndPullRequests({
+      order: "asc",
+      q: `is:pr is:open repo:${owner}/${repo} review:approved base:prod`,
       sort: "created",
-      state: "open",
     });
 
     const detailedPullRequestsResponse = await Promise.all(
-      pullRequests.data.map(async (pr) =>
+      pullRequests.data.items.map(async (pr) =>
         github.rest.pulls.get({
           owner,
           pull_number: pr.number,
