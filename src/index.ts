@@ -38,6 +38,8 @@ const extractLastCommitStatusFromPR =
 
     const lastCommit = pullRequestCommits.data.at(-1);
 
+    debug(JSON.stringify({ lastCommit }));
+
     if (!lastCommit) {
       return;
     }
