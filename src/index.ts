@@ -75,7 +75,7 @@ const run = async () => {
 
     const pullRequestsWithChecks = await Promise.all(
       detailedPullRequestsResponse.map(async (pr) => ({
-        ...pr,
+        ...pr.data,
         lastStatus: await extractLastCommitStatusFromPR({
           github,
           owner,
@@ -84,15 +84,13 @@ const run = async () => {
       }))
     );
 
-    const detailedPullRequests = pullRequestsWithChecks.map(({ data }) => data);
-
-    const rebasablePullRequests = detailedPullRequests.filter(isRebasable);
+    const rebasablePullRequests = pullRequestsWithChecks.filter(isRebasable);
 
     const oldestMergeablePullRequest =
-      detailedPullRequests.find(isInMergeableState);
+      pullRequestsWithChecks.find(isInMergeableState);
     const oldestRebasablePullRequests = rebasablePullRequests.slice(0, 2);
 
-    debug(`Number of opened PRs: ${detailedPullRequests.length}`);
+    debug(`Number of opened PRs: ${pullRequestsWithChecks.length}`);
     debug(JSON.stringify({ oldestMergeablePullRequest }, null, 2));
     debug(JSON.stringify({ oldestRebasablePullRequests }, null, 2));
 
