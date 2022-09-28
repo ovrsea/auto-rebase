@@ -1,5 +1,6 @@
 import { debug, getInput, setFailed } from "@actions/core";
 import { getOctokit } from "@actions/github";
+import type { GitHub } from "@actions/github/lib/utils";
 import { handleError } from "./handle-error";
 
 const isInMergeableState = ({
@@ -17,6 +18,32 @@ const isRebasable = ({
   draft?: boolean;
   mergeable_state: string;
 }) => !draft && mergeable_state === "behind";
+
+const extractLastCommitStatusFromPR =
+  ({
+    github,
+    owner,
+    repo,
+  }: {
+    github: InstanceType<typeof GitHub>;
+    owner: string;
+    repo: string;
+  }) =>
+  async ({ number }: { number: number }) => {
+    const pullRequestCommits = await github.rest.pulls.listCommits({
+      owner,
+      pull_number: number,
+      repo,
+    });
+
+    const lastCommit = pullRequestCommits.data[-1];
+
+    return github.rest.repos.listCommitStatusesForRef({
+      owner,
+      ref: lastCommit.sha,
+      repo,
+    });
+  };
 
 const run = async () => {
   const token = getInput("github_token", { required: true });
@@ -42,9 +69,18 @@ const run = async () => {
       )
     );
 
-    const detailedPullRequests = detailedPullRequestsResponse.map(
-      ({ data }) => data
+    const pullRequestsWithChecks = await Promise.all(
+      detailedPullRequestsResponse.map(async (pr) => ({
+        ...pr,
+        lastStatus: await extractLastCommitStatusFromPR({
+          github,
+          owner,
+          repo,
+        })(pr.data),
+      }))
     );
+
+    const detailedPullRequests = pullRequestsWithChecks.map(({ data }) => data);
 
     const rebasablePullRequests = detailedPullRequests.filter(isRebasable);
 
