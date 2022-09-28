@@ -94,15 +94,13 @@ const run = async () => {
       }))
     );
 
-    const rebasablePullRequests = pullRequestsWithChecks.filter(isRebasable);
-
     const oldestMergeablePullRequest =
       pullRequestsWithChecks.find(isInMergeableState);
-    const oldestRebasablePullRequests = rebasablePullRequests.slice(0, 2);
+    const oldestRebasablePullRequest = pullRequestsWithChecks.find(isRebasable);
 
     debug(`Number of opened PRs: ${pullRequestsWithChecks.length}`);
     debug(JSON.stringify({ oldestMergeablePullRequest }, null, 2));
-    debug(JSON.stringify({ oldestRebasablePullRequests }, null, 2));
+    debug(JSON.stringify({ oldestRebasablePullRequest }, null, 2));
 
     if (oldestMergeablePullRequest) {
       await github.rest.pulls.merge({
@@ -113,17 +111,13 @@ const run = async () => {
       });
     }
 
-    // If (oldestRebasablePullRequests.length > 0) {
-    //   await Promise.all(
-    //     oldestRebasablePullRequests.map(async (pullRequest) =>
-    //       github.rest.pulls.updateBranch({
-    //         owner,
-    //         pull_number: pullRequest.number,
-    //         repo,
-    //       })
-    //     )
-    //   );
-    // }
+    if (oldestRebasablePullRequest) {
+      await github.rest.pulls.updateBranch({
+        owner,
+        pull_number: oldestRebasablePullRequest.number,
+        repo,
+      });
+    }
   } catch (error: unknown) {
     handleError(error, setFailed);
   }
