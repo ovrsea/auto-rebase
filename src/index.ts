@@ -36,7 +36,11 @@ const extractLastCommitStatusFromPR =
       repo,
     });
 
-    const lastCommit = pullRequestCommits.data[-1];
+    const lastCommit = pullRequestCommits.data.at(-1);
+
+    if (!lastCommit) {
+      return;
+    }
 
     return github.rest.repos.listCommitStatusesForRef({
       owner,
