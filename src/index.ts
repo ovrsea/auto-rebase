@@ -65,17 +65,17 @@ const run = async () => {
       });
     }
 
-    if (oldestRebasablePullRequests.length > 0) {
-      await Promise.all(
-        oldestRebasablePullRequests.map(async (pullRequest) =>
-          github.rest.pulls.updateBranch({
-            owner,
-            pull_number: pullRequest.number,
-            repo,
-          })
-        )
-      );
-    }
+    // If (oldestRebasablePullRequests.length > 0) {
+    //   await Promise.all(
+    //     oldestRebasablePullRequests.map(async (pullRequest) =>
+    //       github.rest.pulls.updateBranch({
+    //         owner,
+    //         pull_number: pullRequest.number,
+    //         repo,
+    //       })
+    //     )
+    //   );
+    // }
   } catch (error: unknown) {
     handleError(error, setFailed);
   }
