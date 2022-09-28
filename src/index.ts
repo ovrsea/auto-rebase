@@ -50,7 +50,7 @@ const run = async () => {
 
     const oldestMergeablePullRequest =
       detailedPullRequests.find(isInMergeableState);
-    const oldestRebasablePullRequests = rebasablePullRequests.slice(2);
+    const oldestRebasablePullRequests = rebasablePullRequests.slice(0, 2);
 
     debug(`Number of opened PRs: ${detailedPullRequests.length}`);
     debug(JSON.stringify({ oldestMergeablePullRequest }, null, 2));
