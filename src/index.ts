@@ -38,17 +38,18 @@ const extractLastCommitStatusFromPR =
 
     const lastCommit = pullRequestCommits.data.at(-1);
 
-    debug(JSON.stringify({ lastCommit }));
-
     if (!lastCommit) {
       return;
     }
 
-    return github.rest.repos.listCommitStatusesForRef({
-      owner,
-      ref: lastCommit.sha,
-      repo,
-    });
+    return {
+      lastCommit,
+      status: await github.rest.repos.listCommitStatusesForRef({
+        owner,
+        ref: lastCommit.sha,
+        repo,
+      }),
+    };
   };
 
 const run = async () => {
