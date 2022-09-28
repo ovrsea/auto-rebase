@@ -42,14 +42,15 @@ const extractLastCommitStatusFromPR =
       return;
     }
 
-    return {
-      lastCommit,
-      status: await github.rest.repos.listCommitStatusesForRef({
-        owner,
-        ref: lastCommit.sha,
-        repo,
-      }),
-    };
+    const lastCommitChecks = await github.rest.checks.listForRef({
+      owner,
+      ref: lastCommit.sha,
+      repo,
+    });
+
+    return lastCommitChecks.data.check_runs.every(
+      (check) => check.conclusion === "success"
+    );
   };
 
 const run = async () => {
