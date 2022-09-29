@@ -64,7 +64,11 @@ const run = async () => {
   const owner = getInput("github_owner", { required: true });
   const repo = getInput("github_repo", { required: true });
 
+  debug(`token: ${token}`)
+
   const github = getOctokit(token);
+
+  debug("ICI")
 
   try {
     const pullRequests = await github.rest.search.issuesAndPullRequests({
@@ -72,6 +76,8 @@ const run = async () => {
       q: `is:pr is:open repo:${owner}/${repo} review:approved base:prod`,
       sort: "created",
     });
+
+    debug("ICI 2")
 
     const detailedPullRequestsResponse = await Promise.all(
       pullRequests.data.items.map(async (pr) =>
@@ -83,6 +89,8 @@ const run = async () => {
       )
     );
 
+    debug("ICI 3")
+
     const pullRequestsWithChecks = await Promise.all(
       detailedPullRequestsResponse.map(async (pr) => ({
         ...pr.data,
@@ -93,6 +101,8 @@ const run = async () => {
         })(pr.data),
       }))
     );
+
+    debug("ICI 4")
 
     const oldestMergeablePullRequest =
       pullRequestsWithChecks.find(isInMergeableState);
