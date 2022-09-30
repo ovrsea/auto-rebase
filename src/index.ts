@@ -11,7 +11,7 @@ const isInMergeableState = ({
   draft?: boolean;
   lastStatus: "success" | "failure";
   mergeable_state: string;
-}) => !draft && mergeable_state === "clean" && lastStatus === "success";
+  }) => !draft && mergeable_state === "clean" && lastStatus === "success";
 
 const isRebasable = ({
   draft,
@@ -22,6 +22,10 @@ const isRebasable = ({
   lastStatus: "success" | "failure";
   mergeable_state: string;
 }) => !draft && mergeable_state === "behind" && lastStatus === "success";
+
+const isPrioritized = ({ labels }:{
+  labels: Array<{name:string}>,
+  }) => labels.some((label) => label.name === "prioritized")
 
 const extractLastCommitStatusFromPR =
   ({
@@ -94,27 +98,30 @@ const run = async () => {
       }))
     );
 
-    const oldestMergeablePullRequest =
-      pullRequestsWithChecks.find(isInMergeableState);
+
     const oldestRebasablePullRequest = pullRequestsWithChecks.find(isRebasable);
+    const prioritizedPullRequest = pullRequestsWithChecks.find(isPrioritized);
+
+    const pullRequestToMerge = pullRequestsWithChecks.find(isInMergeableState);
+    const pullRequestToRebase = prioritizedPullRequest ?? oldestRebasablePullRequest;
 
     debug(`Number of opened PRs: ${pullRequestsWithChecks.length}`);
-    debug(JSON.stringify({ oldestMergeablePullRequest }, null, 2));
-    debug(JSON.stringify({ oldestRebasablePullRequest }, null, 2));
+    debug(JSON.stringify({ pullRequestToMerge }, null, 2));
+    debug(JSON.stringify({ pullRequestToRebase }, null, 2));
 
-    if (oldestMergeablePullRequest) {
+    if (pullRequestToMerge) {
       await github.rest.pulls.merge({
         merge_method: "squash",
         owner,
-        pull_number: oldestMergeablePullRequest.number,
+        pull_number: pullRequestToMerge.number,
         repo,
       });
     }
 
-    if (oldestRebasablePullRequest) {
+    if (pullRequestToRebase) {
       await github.rest.pulls.updateBranch({
         owner,
-        pull_number: oldestRebasablePullRequest.number,
+        pull_number: pullRequestToRebase.number,
         repo,
       });
     }
